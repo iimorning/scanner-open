@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>CFBundleDisplayName</key>
+    <string>Health Monitor</string>
+    <key>CFBundleIdentifier</key>
+    <string>com.example.healthmonitor</string>
+    
+    <!-- 隐私权限说明 -->
+    <key>NSLocationWhenInUseUsageDescription</key>
+    <string>Health Monitor needs location to track outdoor activities</string>
+    
+    <key>NSCameraUsageDescription</key>
+    <string>Camera is needed to take fitness photos</string>
+    
+    <key>NSPhotoLibraryUsageDescription</key>
+    <string>Photo library access to save fitness photos</string>
+    
+    <key>NSContactsUsageDescription</key>
+    <string>Contacts access to invite friends</string>
+    
+    <key>NSHealthShareUsageDescription</key>
+    <string>HealthKit access to read health data</string>
+    
+    <!-- 后台模式 -->
+    <key>UIBackgroundModes</key>
+    <array>
+        <string>location</string>
+        <string>background-processing</string>
+    </array>
+    
+    <!-- App Transport Security -->
+    <key>NSAppTransportSecurity</key>
+    <dict>
+        <key>NSAllowsArbitraryLoads</key>
+        <false/>
+    </dict>
+</dict>
+</plist>
+

@@ -1,0 +1,19 @@
+{
+  "name": "@scanner-open/core",
+  "version": "0.1.0",
+  "description": "Core scanning engine for privacy analysis",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "mocha test/**/*.test.js",
+    "lint": "eslint src/**/*.js"
+  },
+  "keywords": [
+    "privacy",
+    "scanner",
+    "security"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {}
+}
+

@@ -1,0 +1,29 @@
+{
+  "name": "scanner-open",
+  "version": "0.1.0",
+  "description": "Open-source privacy scanner for Android, iOS, and Web applications",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "test": "npm run test --workspaces",
+    "lint": "npm run lint --workspaces",
+    "build": "npm run build --workspaces"
+  },
+  "keywords": [
+    "privacy",
+    "scanner",
+    "security",
+    "android",
+    "ios",
+    "web"
+  ],
+  "author": "",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-org/scanner-open.git"
+  }
+}
+

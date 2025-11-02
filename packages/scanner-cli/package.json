@@ -1,0 +1,23 @@
+{
+  "name": "@scanner-open/cli",
+  "version": "0.1.0",
+  "description": "Command-line interface for privacy scanner",
+  "main": "src/cli.js",
+  "bin": {
+    "scanner": "./bin/scanner.js"
+  },
+  "scripts": {
+    "test": "mocha test/**/*.test.js"
+  },
+  "keywords": [
+    "privacy",
+    "scanner",
+    "cli"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@scanner-open/core": "workspace:*"
+  }
+}
+
