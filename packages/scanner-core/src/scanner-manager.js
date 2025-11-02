@@ -193,12 +193,15 @@ class ScannerManager {
         } = options;
 
         const files = [];
+        const supportedExtensions = ['.js', '.ts', '.jsx', '.tsx', '.java', '.kt', '.swift', '.m', '.xml', '.json', '.plist', '.html', '.htm', '.css'];
 
         try {
             await this.walkDirectory(projectPath, files, {
                 includePatterns,
                 excludePatterns,
-                maxFiles
+                maxFiles,
+                root: projectPath,
+                supportedExtensions
             });
         } catch (error) {
             this.logger.warn('获取项目文件列表失败:', error.message);
@@ -218,10 +221,11 @@ class ScannerManager {
 
         try {
             const entries = await fs.readdir(dirPath, { withFileTypes: true });
+            const rootPath = options.root || dirPath;
 
             for (const entry of entries) {
                 const fullPath = path.join(dirPath, entry.name);
-                const relativePath = path.relative(options.root || dirPath, fullPath);
+                const relativePath = path.relative(rootPath, fullPath);
 
                 // 检查是否应该排除
                 if (this.shouldExclude(relativePath, options.excludePatterns)) {
@@ -229,9 +233,14 @@ class ScannerManager {
                 }
 
                 if (entry.isDirectory()) {
-                    await this.walkDirectory(fullPath, files, { ...options, root: options.root || dirPath });
+                    await this.walkDirectory(fullPath, files, { ...options, root: rootPath });
                 } else if (entry.isFile()) {
-                    if (this.shouldInclude(relativePath, options.includePatterns)) {
+                    // 先检查扩展名，再检查模式
+                    const ext = path.extname(entry.name).toLowerCase();
+                    const isSupported = options.supportedExtensions && options.supportedExtensions.includes(ext);
+                    const matchesPattern = this.shouldInclude(relativePath, options.includePatterns);
+                    
+                    if ((isSupported || matchesPattern) && !this.shouldExclude(relativePath, options.excludePatterns)) {
                         files.push({
                             path: fullPath,
                             name: entry.name,

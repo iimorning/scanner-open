@@ -4,7 +4,8 @@
   "description": "Open-source privacy scanner for Android, iOS, and Web applications",
   "private": true,
   "workspaces": [
-    "packages/*"
+    "packages/scanner-core",
+    "packages/scanner-cli"
   ],
   "scripts": {
     "test": "npm run test --workspaces",

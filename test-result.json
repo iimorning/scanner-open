@@ -1,0 +1,107 @@
+{
+  "scanId": "scan_1762053412654_gzf0l5",
+  "projectPath": "C:\\Users\\祝融\\Desktop\\context\\scanner-open\\examples\\web-app",
+  "timestamp": "2025-11-02T03:16:52.654Z",
+  "files": [],
+  "filesScanned": 1,
+  "errors": [],
+  "warnings": [],
+  "summary": {
+    "privacyRiskLevel": "HIGH",
+    "mainFeatures": [
+      "Location Services",
+      "Camera/Photo",
+      "Analytics",
+      "User Tracking"
+    ],
+    "complianceHints": [
+      "Location data requires explicit user consent and clear purpose explanation",
+      "Third-party services must be disclosed with their privacy policies",
+      "Tracking requires user consent and opt-out mechanisms"
+    ],
+    "dataFlow": {
+      "collectsPersonalData": true,
+      "sharesWithThirdParties": true,
+      "usesTracking": true,
+      "storesLocally": true
+    }
+  },
+  "totalFiles": 1,
+  "scanResults": [
+    {
+      "file": {
+        "path": "C:\\Users\\祝融\\Desktop\\context\\scanner-open\\examples\\web-app\\index.html",
+        "name": "index.html",
+        "relativePath": "index.html"
+      },
+      "results": [
+        {
+          "scanner": "WebScanner",
+          "filePath": "C:\\Users\\祝融\\Desktop\\context\\scanner-open\\examples\\web-app\\index.html",
+          "webApis": [
+            "GEOLOCATION",
+            "CAMERA",
+            "MICROPHONE"
+          ],
+          "storage": [
+            "LOCAL_STORAGE"
+          ],
+          "tracking": [
+            "GOOGLE_ANALYTICS",
+            "GOOGLE_TAG_MANAGER"
+          ],
+          "thirdPartyServices": [
+            "GOOGLE_ANALYTICS"
+          ],
+          "dataCollection": [
+            "FETCH_API"
+          ],
+          "permissions": [
+            "CAMERA",
+            "LOCATION"
+          ],
+          "htmlAnalysis": {
+            "externalScripts": [
+              "https://www.googletagmanager.com/gtag/js"
+            ],
+            "metaTags": [
+              "<meta charset=\"UTF-8\">",
+              "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">"
+            ],
+            "iframes": []
+          },
+          "fileName": "index.html",
+          "scanTime": 3
+        }
+      ]
+    }
+  ],
+  "scanners": [
+    "WebScanner"
+  ],
+  "permissions": [
+    "CAMERA",
+    "LOCATION"
+  ],
+  "apis": [],
+  "thirdPartyServices": [
+    "GOOGLE_ANALYTICS"
+  ],
+  "dataCollection": [
+    "FETCH_API"
+  ],
+  "storage": [
+    "LOCAL_STORAGE"
+  ],
+  "tracking": [
+    "GOOGLE_ANALYTICS",
+    "GOOGLE_TAG_MANAGER"
+  ],
+  "webApis": [
+    "GEOLOCATION",
+    "CAMERA",
+    "MICROPHONE"
+  ],
+  "dependencies": [],
+  "duration": 8
+}
