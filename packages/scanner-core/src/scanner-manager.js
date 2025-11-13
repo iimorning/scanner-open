@@ -3,6 +3,7 @@ const path = require('path');
 const AndroidScanner = require('./scanners/android-scanner');
 const IOSScanner = require('./scanners/ios-scanner');
 const WebScanner = require('./scanners/web-scanner');
+const FileUtils = require('./file-utils');
 
 /**
  * 扫描器管理器
@@ -150,26 +151,41 @@ class ScannerManager {
         };
 
         try {
-            // 1. 获取项目文件列表
+            // 1. 检测项目类型
+            const projectType = await FileUtils.detectProjectType(projectPath);
+            this.logger.info(`项目类型: ${projectType}`);
+
+            // 2. 获取项目文件列表
             const files = await this.getProjectFiles(projectPath, options);
             result.totalFiles = files.length;
 
-            // 2. 并行或串行扫描文件
+            // 3. 并行或串行扫描文件
             if (this.enableParallelScanning && files.length > 1) {
                 await this.scanFilesParallel(files, projectPath, result);
             } else {
                 await this.scanFilesSequential(files, projectPath, result);
             }
 
-            // 3. 合并扫描结果
+            // 4. 合并扫描结果
             const scanResults = result.scanResults || [];
             const mergedResults = this.mergeResults(scanResults.map(r => r.results).flat());
 
-            // 4. 生成最终结果
+            // 5. 设置项目类型
+            if (!mergedResults.projectType) {
+                mergedResults.projectType = projectType;
+            }
+
+            // 6. 生成最终结果
             Object.assign(result, mergedResults, {
+                projectPath,
+                projectName: path.basename(projectPath),
                 duration: Date.now() - startTime,
-                filesScanned: scanResults.length
+                filesScanned: scanResults.length,
+                projectType: projectType
             });
+
+            // 7. 添加AI友好的格式转换
+            this.addAIFriendlyFormats(result);
 
         } catch (error) {
             result.errors.push(`扫描过程异常: ${error.message}`);
@@ -177,6 +193,64 @@ class ScannerManager {
         }
 
         return result;
+    }
+
+    /**
+     * 添加AI友好的格式转换
+     * @param {Object} result 扫描结果
+     */
+    addAIFriendlyFormats(result) {
+        // 确保 permissions 是数组格式（如果是字符串数组，转换为对象数组）
+        if (result.permissions && result.permissions.length > 0) {
+            result.permissions = result.permissions.map(p => {
+                if (typeof p === 'string') {
+                    return {
+                        name: p,
+                        category: p.toLowerCase(),
+                        description: ''
+                    };
+                }
+                return p;
+            });
+        } else {
+            result.permissions = [];
+        }
+
+        // 转换第三方服务为 thirdPartySDKs 格式（兼容性）
+        if (result.thirdPartyServices && result.thirdPartyServices.length > 0) {
+            result.thirdPartySDKs = result.thirdPartyServices.map(service => {
+                if (typeof service === 'string') {
+                    return {
+                        name: service,
+                        category: 'unknown',
+                        privacyRisks: []
+                    };
+                }
+                return service;
+            });
+        } else {
+            result.thirdPartySDKs = [];
+        }
+
+        // 确保其他字段是数组
+        if (!Array.isArray(result.dataCollection)) {
+            result.dataCollection = [];
+        }
+        if (!Array.isArray(result.apis)) {
+            result.apis = [];
+        }
+        if (!Array.isArray(result.storage)) {
+            result.storage = [];
+        }
+        if (!Array.isArray(result.tracking)) {
+            result.tracking = [];
+        }
+        if (!Array.isArray(result.webApis)) {
+            result.webApis = [];
+        }
+        if (!Array.isArray(result.dependencies)) {
+            result.dependencies = [];
+        }
     }
 
     /**
@@ -193,7 +267,7 @@ class ScannerManager {
         } = options;
 
         const files = [];
-        const supportedExtensions = ['.js', '.ts', '.jsx', '.tsx', '.java', '.kt', '.swift', '.m', '.xml', '.json', '.plist', '.html', '.htm', '.css'];
+        const supportedExtensions = FileUtils.getSupportedExtensions();
 
         try {
             await this.walkDirectory(projectPath, files, {
@@ -233,14 +307,13 @@ class ScannerManager {
                 }
 
                 if (entry.isDirectory()) {
-                    await this.walkDirectory(fullPath, files, { ...options, root: rootPath });
+                    // 使用 FileUtils 的智能跳过目录逻辑
+                    if (!FileUtils.shouldSkipDirectory(entry.name)) {
+                        await this.walkDirectory(fullPath, files, { ...options, root: rootPath });
+                    }
                 } else if (entry.isFile()) {
-                    // 先检查扩展名，再检查模式
-                    const ext = path.extname(entry.name).toLowerCase();
-                    const isSupported = options.supportedExtensions && options.supportedExtensions.includes(ext);
-                    const matchesPattern = this.shouldInclude(relativePath, options.includePatterns);
-                    
-                    if ((isSupported || matchesPattern) && !this.shouldExclude(relativePath, options.excludePatterns)) {
+                    // 使用 FileUtils 的智能文件过滤逻辑
+                    if (FileUtils.shouldScanFile(entry.name)) {
                         files.push({
                             path: fullPath,
                             name: entry.name,
@@ -443,33 +516,49 @@ class ScannerManager {
             }
         });
 
-        // 添加摘要信息
+        // 添加AI友好的摘要信息
         merged.summary = this.generateAISummary(merged);
 
         return merged;
     }
 
     /**
-     * 生成摘要信息
+     * 生成AI友好的摘要信息
+     * @param {Object} merged 合并后的结果
+     * @returns {Object} AI摘要
      */
     generateAISummary(merged) {
         return {
+            // 隐私风险等级
             privacyRiskLevel: this.assessPrivacyRisk(merged),
+
+            // 主要功能类别
             mainFeatures: this.categorizeFeatures(merged),
+
+            // 合规建议
             complianceHints: this.generateComplianceHints(merged),
+
+            // 数据流向
             dataFlow: this.analyzeDataFlow(merged)
         };
     }
 
     /**
      * 评估隐私风险等级
+     * @param {Object} data 扫描数据
+     * @returns {string} 风险等级
      */
     assessPrivacyRisk(data) {
         let riskScore = 0;
 
+        // 敏感权限加分
         const sensitivePermissions = ['CAMERA', 'LOCATION_FINE', 'MICROPHONE', 'CONTACTS_READ'];
         riskScore += data.permissions.filter(p => sensitivePermissions.includes(p)).length * 2;
+
+        // 第三方服务加分
         riskScore += data.thirdPartyServices.length;
+
+        // 跟踪服务加分
         riskScore += data.tracking.length * 1.5;
 
         if (riskScore >= 6) return 'HIGH';
@@ -479,6 +568,8 @@ class ScannerManager {
 
     /**
      * 分类主要功能
+     * @param {Object} data 扫描数据
+     * @returns {Array} 功能类别
      */
     categorizeFeatures(data) {
         const features = [];
@@ -501,6 +592,8 @@ class ScannerManager {
 
     /**
      * 生成合规提示
+     * @param {Object} data 扫描数据
+     * @returns {Array} 合规提示
      */
     generateComplianceHints(data) {
         const hints = [];
@@ -520,6 +613,8 @@ class ScannerManager {
 
     /**
      * 分析数据流向
+     * @param {Object} data 扫描数据
+     * @returns {Object} 数据流向分析
      */
     analyzeDataFlow(data) {
         return {
@@ -532,6 +627,10 @@ class ScannerManager {
 
     /**
      * 合并数组字段
+     * @param {Object} source 源对象
+     * @param {Object} target 目标对象
+     * @param {string} sourceKey 源字段名
+     * @param {string} targetKey 目标字段名（可选）
      */
     mergeArrayField(source, target, sourceKey, targetKey = sourceKey) {
         if (source[sourceKey] && Array.isArray(source[sourceKey])) {

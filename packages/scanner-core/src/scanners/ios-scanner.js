@@ -66,6 +66,8 @@ class IOSScanner extends BaseScanner {
      * @returns {Object} 扫描结果
      */
     scan(content, filePath) {
+        console.log(`     🍎 [IOSScanner] 开始扫描iOS文件: ${filePath}`);
+
         const result = {
             scanner: this.name,
             filePath,
@@ -74,25 +76,45 @@ class IOSScanner extends BaseScanner {
             thirdPartyLibs: [],
             dataCollection: []
         };
-        
+
         // 扫描权限
         result.permissions = this.scanPatterns(content, this.patterns.permissions);
-        
+        if (result.permissions.length > 0) {
+            console.log(`     🔐 [IOSScanner] 检测到权限: ${result.permissions.join(', ')}`);
+        }
+
         // 扫描 API 使用
         result.apis = this.scanPatterns(content, this.patterns.apis);
-        
+        if (result.apis.length > 0) {
+            console.log(`     📱 [IOSScanner] 检测到API使用: ${result.apis.join(', ')}`);
+        }
+
         // 扫描第三方库
         result.thirdPartyLibs = this.scanPatterns(content, this.patterns.thirdPartyLibs);
-        
+        if (result.thirdPartyLibs.length > 0) {
+            console.log(`     📚 [IOSScanner] 检测到第三方库: ${result.thirdPartyLibs.join(', ')}`);
+        }
+
         // 特殊处理 Info.plist
         if (filePath.includes('Info.plist')) {
+            console.log(`     📋 [IOSScanner] 特殊处理Info.plist文件...`);
             result.dataCollection = this.scanPlistDataCollection(content);
+            if (result.dataCollection.length > 0) {
+                console.log(`     📊 [IOSScanner] 检测到数据收集功能: ${result.dataCollection.join(', ')}`);
+            }
         }
-        
+
         // 扫描数据收集相关代码
         const codeDataCollection = this.scanCodeDataCollection(content);
+        if (codeDataCollection.length > 0) {
+            console.log(`     🔍 [IOSScanner] 检测到代码中的数据收集: ${codeDataCollection.join(', ')}`);
+        }
         result.dataCollection.push(...codeDataCollection);
-        
+
+        const totalFeatures = result.permissions.length + result.apis.length +
+                             result.thirdPartyLibs.length + result.dataCollection.length;
+        console.log(`     ✅ [IOSScanner] 扫描完成，共检测到 ${totalFeatures} 个隐私相关功能`);
+
         return result;
     }
     

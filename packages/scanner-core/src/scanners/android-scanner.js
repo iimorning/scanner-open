@@ -60,6 +60,8 @@ class AndroidScanner extends BaseScanner {
      * @returns {Object} 扫描结果
      */
     scan(content, filePath) {
+        console.log(`     🤖 [AndroidScanner] 开始扫描Android文件: ${filePath}`);
+
         const result = {
             scanner: this.name,
             filePath,
@@ -68,26 +70,47 @@ class AndroidScanner extends BaseScanner {
             thirdPartyLibs: [],
             dataCollection: []
         };
-        
+
         // 扫描权限
         result.permissions = this.scanPatterns(content, this.patterns.permissions);
-        
+        if (result.permissions.length > 0) {
+            console.log(`     🔐 [AndroidScanner] 检测到权限: ${result.permissions.join(', ')}`);
+        }
+
         // 扫描 API 使用
         result.apis = this.scanPatterns(content, this.patterns.apis);
-        
+        if (result.apis.length > 0) {
+            console.log(`     📱 [AndroidScanner] 检测到API使用: ${result.apis.join(', ')}`);
+        }
+
         // 扫描第三方库
         result.thirdPartyLibs = this.scanPatterns(content, this.patterns.thirdPartyLibs);
-        
+        if (result.thirdPartyLibs.length > 0) {
+            console.log(`     📚 [AndroidScanner] 检测到第三方库: ${result.thirdPartyLibs.join(', ')}`);
+        }
+
         // 特殊处理 AndroidManifest.xml
         if (filePath.includes('AndroidManifest.xml')) {
+            console.log(`     📋 [AndroidScanner] 特殊处理AndroidManifest.xml文件...`);
             result.dataCollection = this.scanManifestDataCollection(content);
+            if (result.dataCollection.length > 0) {
+                console.log(`     📊 [AndroidScanner] 检测到数据收集功能: ${result.dataCollection.join(', ')}`);
+            }
         }
-        
+
         // 特殊处理 Gradle 文件
         if (filePath.includes('.gradle')) {
+            console.log(`     🔧 [AndroidScanner] 特殊处理Gradle文件...`);
             result.dependencies = this.scanGradleDependencies(content);
+            if (result.dependencies.length > 0) {
+                console.log(`     📦 [AndroidScanner] 检测到依赖: ${result.dependencies.length}个`);
+            }
         }
-        
+
+        const totalFeatures = result.permissions.length + result.apis.length +
+                             result.thirdPartyLibs.length + result.dataCollection.length;
+        console.log(`     ✅ [AndroidScanner] 扫描完成，共检测到 ${totalFeatures} 个隐私相关功能`);
+
         return result;
     }
     

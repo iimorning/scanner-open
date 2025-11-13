@@ -1,7 +1,7 @@
 {
   "name": "@scanner-open/core",
-  "version": "0.1.0",
-  "description": "Core scanning engine for privacy analysis",
+  "version": "0.2.0",
+  "description": "Core scanning engine for privacy analysis - Enhanced with AI-friendly features and improved scanning capabilities",
   "main": "src/index.js",
   "scripts": {
     "test": "mocha test/**/*.test.js",
@@ -10,7 +10,14 @@
   "keywords": [
     "privacy",
     "scanner",
-    "security"
+    "security",
+    "ai",
+    "android",
+    "ios",
+    "web",
+    "privacy-analysis",
+    "gdpr",
+    "compliance"
   ],
   "author": "",
   "license": "MIT",

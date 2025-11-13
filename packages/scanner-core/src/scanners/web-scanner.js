@@ -73,6 +73,8 @@ class WebScanner extends BaseScanner {
      * @returns {Object} 扫描结果
      */
     scan(content, filePath) {
+        console.log(`     🌐 [WebScanner] 开始扫描Web文件: ${filePath}`);
+
         const result = {
             scanner: this.name,
             filePath,
@@ -83,16 +85,25 @@ class WebScanner extends BaseScanner {
             dataCollection: [],
             permissions: []
         };
-        
+
         // 扫描 Web APIs
         result.webApis = this.scanPatterns(content, this.patterns.webApis);
-        
+        if (result.webApis.length > 0) {
+            console.log(`     📡 [WebScanner] 检测到Web API: ${result.webApis.join(', ')}`);
+        }
+
         // 扫描存储技术
         result.storage = this.scanPatterns(content, this.patterns.storage);
-        
+        if (result.storage.length > 0) {
+            console.log(`     💾 [WebScanner] 检测到存储技术: ${result.storage.join(', ')}`);
+        }
+
         // 扫描跟踪服务
         result.tracking = this.scanPatterns(content, this.patterns.tracking);
-        
+        if (result.tracking.length > 0) {
+            console.log(`     📊 [WebScanner] 检测到跟踪服务: ${result.tracking.join(', ')}`);
+        }
+
         // 扫描第三方服务
         const thirdPartyOrder = ['GOOGLE_ANALYTICS','GOOGLE_TAG_MANAGER','FIREBASE','FACEBOOK_PIXEL','FACEBOOK_SDK','MIXPANEL','AMPLITUDE','HOTJAR','INTERCOM','ZENDESK','CRISP','AWS_SDK','STRIPE','PAYPAL','RECAPTCHA','MAPS','SOCIAL_LOGIN'];
         const detected = this.scanPatterns(content, this.patterns.thirdPartyServices);
@@ -100,21 +111,35 @@ class WebScanner extends BaseScanner {
         if (result.tracking.includes('GOOGLE_ANALYTICS') && !result.thirdPartyServices.includes('GOOGLE_ANALYTICS')) {
             result.thirdPartyServices.unshift('GOOGLE_ANALYTICS');
         }
-        
+        if (result.thirdPartyServices.length > 0) {
+            console.log(`     🔗 [WebScanner] 检测到第三方服务: ${result.thirdPartyServices.join(', ')}`);
+        }
+
         // 扫描数据收集
         result.dataCollection = this.scanPatterns(content, this.patterns.dataCollection);
-        
+        if (result.dataCollection.length > 0) {
+            console.log(`     📋 [WebScanner] 检测到数据收集: ${result.dataCollection.join(', ')}`);
+        }
+
         // 特殊处理 HTML 文件
         if (filePath.endsWith('.html') || filePath.endsWith('.htm') || filePath.endsWith('.xhtml')) {
+            console.log(`     🌐 [WebScanner] 特殊处理HTML文件...`);
             result.htmlAnalysis = this.scanHtmlSpecific(content);
+            if (result.htmlAnalysis.externalScripts.length > 0) {
+                console.log(`     📜 [WebScanner] 检测到外部脚本: ${result.htmlAnalysis.externalScripts.length}个`);
+            }
         }
-        
+
         // 特殊处理 package.json
         if (filePath.includes('package.json')) {
+            console.log(`     📦 [WebScanner] 特殊处理package.json文件...`);
             result.dependencies = this.scanPackageJsonDependencies(content);
+            if (result.dependencies.length > 0) {
+                console.log(`     📦 [WebScanner] 检测到依赖包: ${result.dependencies.length}个`);
+            }
         }
-        
-        // 从 API 使用推断权限
+
+        // 从 API 使用推断权限（便于测试断言）
         if (result.webApis.includes('CAMERA')) {
             result.permissions.push('CAMERA');
         }
@@ -122,9 +147,13 @@ class WebScanner extends BaseScanner {
             result.permissions.push('LOCATION');
         }
 
+        const totalFeatures = result.webApis.length + result.storage.length + result.tracking.length +
+                             result.thirdPartyServices.length + result.dataCollection.length;
+        console.log(`     ✅ [WebScanner] 扫描完成，共检测到 ${totalFeatures} 个隐私相关功能`);
+
         return result;
     }
-    
+
     /**
      * 扫描 HTML 特定内容
      * @param {string} content HTML 内容
@@ -136,29 +165,29 @@ class WebScanner extends BaseScanner {
             metaTags: [],
             iframes: []
         };
-        
+
         // 扫描外部脚本
         const scriptPattern = /<script[^>]*src=["']([^"']+)["']/gi;
         let match;
         while ((match = scriptPattern.exec(content)) !== null) {
             analysis.externalScripts.push(match[1]);
         }
-        
+
         // 扫描 meta 标签
         const metaPattern = /<meta[^>]*>/gi;
         while ((match = metaPattern.exec(content)) !== null) {
             analysis.metaTags.push(match[0]);
         }
-        
+
         // 扫描 iframe
         const iframePattern = /<iframe[^>]*src=["']([^"']+)["']/gi;
         while ((match = iframePattern.exec(content)) !== null) {
             analysis.iframes.push(match[1]);
         }
-        
+
         return analysis;
     }
-    
+
     /**
      * 扫描 package.json 依赖
      * @param {string} content package.json 内容
@@ -168,20 +197,20 @@ class WebScanner extends BaseScanner {
         try {
             const packageData = JSON.parse(content);
             const dependencies = [];
-            
+
             // 合并 dependencies 和 devDependencies
             const allDeps = {
                 ...packageData.dependencies,
                 ...packageData.devDependencies
             };
-            
+
             Object.keys(allDeps || {}).forEach(dep => {
                 dependencies.push({
                     name: dep,
                     version: allDeps[dep]
                 });
             });
-            
+
             return dependencies;
         } catch (error) {
             return [];
